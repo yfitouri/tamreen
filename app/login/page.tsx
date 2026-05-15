@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function Login(){return <main className="container"><div className="form-box"><span className="kicker">Welcome back</span><h1>Login to Tamreen</h1><p className="muted">This is frontend demo only. Backend login comes later.</p><div className="form-stack"><input className="input" placeholder="Email"/><input className="input" placeholder="Password" type="password"/><button className="btn btn-primary">Login</button><Link className="view-link" href="/register">Create new account</Link></div></div></main>}

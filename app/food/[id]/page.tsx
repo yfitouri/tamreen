@@ -1,0 +1,6 @@
+import { foodBusinesses } from "@/lib/data";
+import Link from "next/link";
+export default async function FoodProfile({ params }: { params: Promise<{ id: string }> }){
+ const {id}=await params; const food=foodBusinesses.find(f=>f.id===Number(id))||foodBusinesses[0];
+ return <main className="container"><Link className="view-link" href="/food">← Back to healthy food</Link><section className="profile-hero"><img className="profile-image" src={food.image} alt={food.name}/><div className="card card-pad"><div className="space"><span className="rating">★ {food.rating} ({food.reviews})</span>{food.verified&&<span className="verified">✓ Verified</span>}</div><h1 style={{fontSize:56, margin:"12px 0"}}>{food.name}</h1><p className="muted">📍 {food.area}, {food.city}</p><p>{food.description}</p><div className="row"><span className="pill">{food.type}</span><span className="pill">Delivery</span><span className="pill">Calories available</span></div><div className="info-list">{food.menu.map(m=><div className="info-line" key={m}><span>{m}</span><strong>{food.price}</strong></div>)}</div><div className="actions"><button className="btn btn-primary">Order on WhatsApp</button><button className="btn btn-soft">Save ♡</button></div></div></section></main>
+}

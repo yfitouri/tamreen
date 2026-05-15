@@ -1,0 +1,3 @@
+import { sports, communityPosts } from "@/lib/data";
+import { CommunityCard } from "@/components/Cards";
+export default function Sports(){return <main className="container"><section className="page-hero"><span className="kicker">All sports</span><h1>One app for every active thing in Libya.</h1></section><div className="grid grid-3">{sports.map(s=><div className="card card-pad" key={s.name}><span className="category-icon">{s.icon}</span><h3 className="card-title">{s.name}</h3><p>{s.desc}</p><button className="btn btn-primary">Explore {s.name}</button></div>)}</div><section className="section"><h2>People looking now</h2><div className="grid grid-3">{communityPosts.map(p=><CommunityCard key={p.id} post={p}/>)}</div></section></main>}

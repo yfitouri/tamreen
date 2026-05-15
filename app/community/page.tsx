@@ -1,0 +1,3 @@
+import { communityPosts } from "@/lib/data";
+import { CommunityCard } from "@/components/Cards";
+export default function Community(){return <main className="container"><section className="page-hero"><span className="kicker">Find Your Crew</span><h1>Find people to train, play and move with.</h1><div className="actions"><button className="btn btn-primary">+ Create Post</button><button className="btn btn-soft">Nearby</button><button className="btn btn-soft">All Sports</button></div></section><div className="grid grid-3">{communityPosts.map(p=><CommunityCard key={p.id} post={p} large/>)}</div></main>}
