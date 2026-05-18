@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
-import "./globals.css";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Tamreen — Libya Sports & Fitness Community",
-  description: "Find your sport, your gym, your crew in Libya.",
+  title: "Tamreen",
+  description: "Libya sports and fitness community app",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>
         <Header />
         {children}
+        <Footer />
       </body>
     </html>
   );
