@@ -1,344 +1,373 @@
-import Image from "next/image";
-import Link from "next/link";
+"use client";
 
-const categories = [
-  { name: "Gyms", icon: "🏋️", count: "1,245 gyms", href: "/gyms" },
-  { name: "Trainers", icon: "💪", count: "482 trainers", href: "/trainers" },
-  { name: "Football", icon: "⚽", count: "1,328 games", href: "/sports" },
-  { name: "Padel", icon: "🎾", count: "612 courts", href: "/sports" },
-  { name: "Cycling", icon: "🚴", count: "475 routes", href: "/sports" },
-  { name: "Swimming", icon: "🏊", count: "256 pools", href: "/sports" },
-  { name: "Hiking", icon: "🥾", count: "212 trails", href: "/sports" },
-  { name: "Healthy Food", icon: "🥗", count: "689 places", href: "/food" },
+import { useEffect, useState } from "react";
+
+type CommunityPost = {
+  id: number;
+  user_id: number;
+  full_name: string;
+  city: string;
+  sport: string;
+  title: string;
+  description?: string;
+  event_time?: string;
+  needed_people: number;
+  whatsapp?: string;
+  status: string;
+  created_at: string;
+};
+
+const sports = [
+  "Football",
+  "Padel",
+  "Gym",
+  "Cycling",
+  "Running",
+  "Swimming",
+  "Hiking",
+  "Diving",
+  "Boxing",
 ];
 
-const crewPosts = [
-  {
-    name: "Omar M.",
-    city: "Tripoli",
-    title: "Need 2 players tonight",
-    sport: "Football",
-    time: "Tonight • 8:00 PM",
-    people: "+3",
-  },
-  {
-    name: "Salma K.",
-    city: "Benghazi",
-    title: "Looking for a padel partner",
-    sport: "Padel",
-    time: "Tomorrow • 6:00 PM",
-    people: "+2",
-  },
-  {
-    name: "Ali R.",
-    city: "Misrata",
-    title: "Friday morning ride",
-    sport: "Cycling",
-    time: "Friday • 7:00 AM",
-    people: "+5",
-  },
-];
+export default function CommunityPage() {
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
 
-const events = [
-  {
-    date: "May 24",
-    title: "Tamreen Padel Cup",
-    location: "Win Arena, Tripoli",
-    type: "Padel",
-  },
-  {
-    date: "May 31",
-    title: "City Run Tripoli",
-    location: "Tripoli Corniche",
-    type: "Running",
-  },
-  {
-    date: "Jun 7",
-    title: "Beach Bootcamp",
-    location: "Zuwara Beach",
-    type: "Fitness",
-  },
-];
+  const [sport, setSport] = useState("Football");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [eventTime, setEventTime] = useState("");
+  const [neededPeople, setNeededPeople] = useState(0);
+  const [whatsapp, setWhatsapp] = useState("");
 
-const challenges = [
-  {
-    title: "30-Day Move",
-    text: "Move 30 minutes every day",
-    joined: "1.2K joined",
-    progress: "72%",
-  },
-  {
-    title: "10K Steps Daily",
-    text: "Hit your daily steps goal",
-    joined: "2.8K joined",
-    progress: "58%",
-  },
-  {
-    title: "Hydration Hero",
-    text: "Drink 2L of water daily",
-    joined: "945 joined",
-    progress: "45%",
-  },
-];
+  const [message, setMessage] = useState("");
 
-export default function HomePage() {
+  async function loadPosts() {
+    try {
+      setLoading(true);
+
+      const res = await fetch("http://localhost:5000/api/community");
+      const data = await res.json();
+
+      setPosts(data.posts || []);
+    } catch (error) {
+      console.error(error);
+      setMessage("Cannot load community posts. Make sure backend is running.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  async function createPost() {
+    setMessage("");
+
+    const token = localStorage.getItem("tamreen-token");
+
+    if (!token) {
+      setMessage("Please login first to create a post.");
+      return;
+    }
+
+    if (!title || !sport) {
+      setMessage("Please add sport and title.");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5000/api/community", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          sport,
+          title,
+          description,
+          event_time: eventTime,
+          needed_people: neededPeople,
+          whatsapp,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data.message || "Could not create post.");
+        return;
+      }
+
+      setTitle("");
+      setDescription("");
+      setEventTime("");
+      setNeededPeople(0);
+      setWhatsapp("");
+      setShowForm(false);
+
+      await loadPosts();
+    } catch (error) {
+      console.error(error);
+      setMessage("Cannot connect to backend.");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#f6f8f5] text-zinc-950">
-      {/* HERO */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-[#f5fff8] to-[#eef8f0]" />
-        <div className="absolute -right-32 top-10 h-80 w-80 rounded-full bg-green-200/40 blur-3xl" />
-        <div className="absolute -left-32 bottom-10 h-80 w-80 rounded-full bg-red-200/40 blur-3xl" />
+      <section className="mx-auto max-w-7xl px-5 py-10 lg:px-8">
+        <div className="overflow-hidden rounded-[3rem] bg-white shadow-sm">
+          <div className="relative grid gap-8 p-8 md:p-12 lg:grid-cols-[1fr_380px] lg:items-center">
+            <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-green-200/50 blur-3xl" />
+            <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-red-200/50 blur-3xl" />
 
-        <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-10 px-5 py-10 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-16">
-          <div className="flex flex-col justify-center">
-            <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-green-200 bg-white px-4 py-2 text-sm font-semibold text-green-700 shadow-sm">
-              🇱🇾 Libya’s sports & fitness community
-            </div>
+            <div className="relative">
+              <span className="inline-flex rounded-full bg-green-100 px-4 py-2 text-sm font-black text-green-700">
+                Community
+              </span>
 
-            <h1 className="max-w-3xl text-5xl font-black leading-[0.95] tracking-tight md:text-7xl">
-              Find your sport,
-              <br />
-              your <span className="text-green-600">gym</span>,
-              <br />
-              your <span className="text-red-600">crew.</span>
-            </h1>
+              <h1 className="mt-5 max-w-3xl text-5xl font-black leading-tight tracking-tight md:text-6xl">
+                Find people to train, play and move with.
+              </h1>
 
-            <p className="mt-6 max-w-xl text-lg leading-8 text-zinc-600">
-              Tamreen helps people in Libya find gyms, trainers, football games,
-              padel partners, cycling groups, events, challenges, and healthy food
-              all in one simple app.
-            </p>
+              <p className="mt-5 max-w-2xl text-lg leading-8 text-zinc-600">
+                Post what you want to do today. Find football players, padel partners,
+                gym buddies, cycling groups, hiking friends and more.
+              </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/gyms"
-                className="rounded-full bg-green-600 px-7 py-4 text-sm font-bold text-white shadow-lg shadow-green-600/20 transition hover:-translate-y-1 hover:bg-green-700"
-              >
-                Explore Now
-              </Link>
-              <Link
-                href="/community"
-                className="rounded-full border border-zinc-200 bg-white px-7 py-4 text-sm font-bold text-zinc-900 shadow-sm transition hover:-translate-y-1 hover:border-green-300"
-              >
-                Find Your Crew
-              </Link>
-            </div>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <button
+                  onClick={() => setShowForm(!showForm)}
+                  className="rounded-full bg-green-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-600/20 transition hover:-translate-y-1 hover:bg-green-700"
+                >
+                  + Create Post
+                </button>
 
-            <div className="mt-8 grid max-w-xl grid-cols-3 gap-3">
-              <div className="rounded-3xl bg-white p-4 shadow-sm">
-                <p className="text-2xl font-black">12K+</p>
-                <p className="text-xs font-semibold text-zinc-500">Active people</p>
-              </div>
-              <div className="rounded-3xl bg-white p-4 shadow-sm">
-                <p className="text-2xl font-black">450+</p>
-                <p className="text-xs font-semibold text-zinc-500">Places</p>
-              </div>
-              <div className="rounded-3xl bg-white p-4 shadow-sm">
-                <p className="text-2xl font-black">80+</p>
-                <p className="text-xs font-semibold text-zinc-500">Weekly events</p>
+                <button className="rounded-full border border-zinc-200 bg-white px-6 py-3 text-sm font-black text-zinc-900 transition hover:-translate-y-1">
+                  Nearby
+                </button>
+
+                <button className="rounded-full border border-zinc-200 bg-white px-6 py-3 text-sm font-black text-zinc-900 transition hover:-translate-y-1">
+                  All Sports
+                </button>
               </div>
             </div>
-          </div>
 
-          <div className="relative">
-            <div className="relative overflow-hidden rounded-[2.5rem] bg-white p-3 shadow-2xl shadow-zinc-900/10">
-              <Image
-                src="/images/final-ui-concept.png"
-                alt="Tamreen Libya fitness community"
-                width={1000}
-                height={700}
-                className="h-[520px] w-full rounded-[2rem] object-cover"
-                priority
-              />
+            <div className="relative rounded-[2.5rem] bg-zinc-950 p-6 text-white">
+              <p className="text-sm font-bold text-green-400">Live community</p>
+              <h3 className="mt-2 text-5xl font-black">{posts.length}</h3>
+              <p className="mt-1 text-zinc-300">active posts</p>
 
-              <div className="absolute inset-x-6 bottom-6 rounded-[2rem] bg-white/85 p-5 shadow-xl backdrop-blur-md">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-bold text-green-700">Live today</p>
-                    <h3 className="text-2xl font-black">Football tonight in Tripoli</h3>
-                    <p className="mt-1 text-sm font-medium text-zinc-600">
-                      4 going • Need 2 more players
-                    </p>
-                  </div>
-                  <button className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white">
-                    I’m in
-                  </button>
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-white/10 p-4">
+                  <p className="text-2xl font-black">⚽</p>
+                  <p className="text-xs text-zinc-300">Football</p>
+                </div>
+                <div className="rounded-2xl bg-white/10 p-4">
+                  <p className="text-2xl font-black">🎾</p>
+                  <p className="text-xs text-zinc-300">Padel</p>
                 </div>
               </div>
             </div>
-
-            <div className="absolute -bottom-8 -left-4 hidden rounded-3xl bg-white p-5 shadow-xl lg:block">
-              <p className="text-sm font-bold text-zinc-500">Verified gym</p>
-              <p className="text-xl font-black">Power House Gym</p>
-              <p className="mt-1 text-sm text-zinc-600">⭐ 4.8 • Tripoli • 2.1 km</p>
-            </div>
           </div>
-        </div>
 
-        <div className="relative h-5 bg-gradient-to-r from-red-600 via-zinc-950 to-green-600" />
-      </section>
-
-      {/* CATEGORIES */}
-      <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="font-bold text-green-700">Explore</p>
-            <h2 className="text-4xl font-black tracking-tight">Find what moves you</h2>
-          </div>
-          <Link href="/sports" className="font-bold text-green-700">
-            View all sports →
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {categories.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className="group rounded-[2rem] border border-zinc-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-green-300 hover:shadow-xl"
-            >
-              <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-green-50 text-3xl transition group-hover:scale-110">
-                {item.icon}
-              </div>
-              <h3 className="text-lg font-black">{item.name}</h3>
-              <p className="mt-1 text-sm font-semibold text-zinc-500">{item.count}</p>
-            </Link>
-          ))}
+          <div className="h-4 bg-gradient-to-r from-red-600 via-zinc-950 to-green-600" />
         </div>
       </section>
 
-      {/* COMMUNITY + EVENTS */}
-      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-5 pb-16 lg:grid-cols-[1.2fr_0.8fr] lg:px-8">
-        <div className="rounded-[2.5rem] bg-white p-6 shadow-sm">
-          <div className="mb-6 flex items-end justify-between gap-4">
-            <div>
-              <p className="font-bold text-red-600">Community</p>
-              <h2 className="text-3xl font-black">Find Your Crew</h2>
-              <p className="mt-1 text-zinc-500">Train together. Play together. Stay active.</p>
-            </div>
-            <Link href="/community" className="font-bold text-green-700">
-              See all →
-            </Link>
+      <section className="mx-auto max-w-7xl px-5 pb-8 lg:px-8">
+        {message && (
+          <div className="mb-5 rounded-3xl bg-red-50 p-5 text-sm font-black text-red-700">
+            {message}
           </div>
+        )}
 
-          <div className="grid gap-4">
-            {crewPosts.map((post) => (
-              <div
-                key={post.title}
-                className="rounded-[2rem] border border-zinc-100 bg-[#fbfcfb] p-5 transition hover:border-green-200 hover:bg-green-50/40"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <div className="mb-3 flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-zinc-950 font-black text-white">
-                        {post.name[0]}
-                      </div>
-                      <div>
-                        <p className="font-black">{post.name}</p>
-                        <p className="text-sm font-semibold text-zinc-500">{post.city}</p>
-                      </div>
-                    </div>
-                    <h3 className="text-2xl font-black">{post.title}</h3>
-                    <p className="mt-2 text-sm font-semibold text-zinc-500">{post.time}</p>
-                  </div>
+        {showForm && (
+          <div className="mb-8 rounded-[2.5rem] bg-white p-6 shadow-sm md:p-8">
+            <p className="font-bold text-green-700">Create post</p>
+            <h2 className="mt-2 text-3xl font-black">What are you looking for?</h2>
 
-                  <div className="text-right">
-                    <span className="rounded-full bg-green-100 px-4 py-2 text-sm font-black text-green-700">
-                      {post.sport}
-                    </span>
-                    <p className="mt-4 text-sm font-black text-red-600">{post.people}</p>
-                  </div>
-                </div>
+            <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <div>
+                <label className="text-sm font-black text-zinc-700">Sport</label>
+                <select
+                  value={sport}
+                  onChange={(e) => setSport(e.target.value)}
+                  className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 font-bold outline-none focus:border-green-500"
+                >
+                  {sports.map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
+                </select>
               </div>
-            ))}
-          </div>
-        </div>
 
-        <div className="rounded-[2.5rem] bg-zinc-950 p-6 text-white shadow-sm">
-          <div className="mb-6">
-            <p className="font-bold text-green-400">Events</p>
-            <h2 className="text-3xl font-black">Upcoming Events</h2>
-          </div>
-
-          <div className="grid gap-4">
-            {events.map((event) => (
-              <div
-                key={event.title}
-                className="rounded-[2rem] bg-white/10 p-5 ring-1 ring-white/10 transition hover:bg-white/15"
-              >
-                <div className="mb-4 inline-flex rounded-full bg-red-600 px-3 py-1 text-xs font-black">
-                  {event.date}
-                </div>
-                <h3 className="text-xl font-black">{event.title}</h3>
-                <p className="mt-1 text-sm text-zinc-300">{event.location}</p>
-                <p className="mt-3 text-sm font-bold text-green-400">{event.type}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CHALLENGES */}
-      <section className="mx-auto max-w-7xl px-5 pb-20 lg:px-8">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="font-bold text-green-700">Motivation</p>
-            <h2 className="text-4xl font-black tracking-tight">Challenges that keep people coming back</h2>
-          </div>
-          <Link href="/challenges" className="font-bold text-green-700">
-            Join challenge →
-          </Link>
-        </div>
-
-        <div className="grid gap-5 md:grid-cols-3">
-          {challenges.map((challenge) => (
-            <div key={challenge.title} className="rounded-[2.5rem] bg-white p-6 shadow-sm">
-              <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-green-100 text-2xl">
-                🔥
-              </div>
-              <h3 className="text-2xl font-black">{challenge.title}</h3>
-              <p className="mt-2 text-zinc-500">{challenge.text}</p>
-
-              <div className="mt-6 h-3 overflow-hidden rounded-full bg-zinc-100">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-green-500 to-red-500"
-                  style={{ width: challenge.progress }}
+              <div>
+                <label className="text-sm font-black text-zinc-700">
+                  Time / date
+                </label>
+                <input
+                  value={eventTime}
+                  onChange={(e) => setEventTime(e.target.value)}
+                  placeholder="Tonight 8PM, Friday morning..."
+                  className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 font-bold outline-none focus:border-green-500"
                 />
               </div>
 
-              <div className="mt-4 flex items-center justify-between">
-                <p className="text-sm font-bold text-zinc-500">{challenge.joined}</p>
-                <p className="text-sm font-black text-green-700">{challenge.progress}</p>
+              <div className="md:col-span-2">
+                <label className="text-sm font-black text-zinc-700">Title</label>
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Need 2 players tonight"
+                  className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 font-bold outline-none focus:border-green-500"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-sm font-black text-zinc-700">
+                  Description
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Tell people more details..."
+                  rows={4}
+                  className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 font-bold outline-none focus:border-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-black text-zinc-700">
+                  Needed people
+                </label>
+                <input
+                  type="number"
+                  value={neededPeople}
+                  onChange={(e) => setNeededPeople(Number(e.target.value))}
+                  className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 font-bold outline-none focus:border-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-black text-zinc-700">
+                  WhatsApp optional
+                </label>
+                <input
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  placeholder="+218..."
+                  className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 font-bold outline-none focus:border-green-500"
+                />
               </div>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* CTA */}
-      <section className="mx-auto max-w-7xl px-5 pb-20 lg:px-8">
-        <div className="overflow-hidden rounded-[3rem] bg-gradient-to-r from-green-600 via-zinc-950 to-red-600 p-1">
-          <div className="rounded-[2.8rem] bg-white p-8 md:p-12">
-            <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-center">
-              <div>
-                <h2 className="text-4xl font-black tracking-tight">
-                  Tamreen Pass is coming.
-                </h2>
-                <p className="mt-3 max-w-2xl text-lg text-zinc-600">
-                  One membership. Multiple gyms. Across Libya. This is the future
-                  feature after we get gyms and communities onboard.
-                </p>
-              </div>
-              <Link
-                href="/register"
-                className="rounded-full bg-zinc-950 px-8 py-4 text-center text-sm font-black text-white transition hover:-translate-y-1"
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                onClick={createPost}
+                className="rounded-full bg-green-600 px-7 py-4 text-sm font-black text-white shadow-lg shadow-green-600/20 transition hover:-translate-y-1 hover:bg-green-700"
               >
-                Join waitlist
-              </Link>
+                Post now
+              </button>
+
+              <button
+                onClick={() => setShowForm(false)}
+                className="rounded-full border border-zinc-200 bg-white px-7 py-4 text-sm font-black text-zinc-900 transition hover:border-green-300"
+              >
+                Cancel
+              </button>
             </div>
           </div>
+        )}
+      </section>
+
+      <section className="mx-auto max-w-7xl px-5 pb-20 lg:px-8">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="font-bold text-green-700">Find Your Crew</p>
+            <h2 className="text-4xl font-black tracking-tight">Latest posts</h2>
+          </div>
         </div>
+
+        {loading ? (
+          <div className="rounded-[2.5rem] bg-white p-8 text-center font-black shadow-sm">
+            Loading posts...
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="rounded-[2.5rem] bg-white p-8 text-center shadow-sm">
+            <h3 className="text-3xl font-black">No posts yet</h3>
+            <p className="mt-2 text-zinc-500">
+              Be the first person to create a community post.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post) => (
+              <article
+                key={post.id}
+                className="rounded-[2.5rem] border border-zinc-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-green-200 hover:shadow-xl"
+              >
+                <div className="mb-5 flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-950 font-black text-white">
+                      {post.full_name?.[0] || "U"}
+                    </div>
+                    <div>
+                      <p className="font-black">{post.full_name}</p>
+                      <p className="text-sm font-semibold text-zinc-500">
+                        {post.city || "Libya"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-700">
+                    {post.sport}
+                  </span>
+                </div>
+
+                <h3 className="text-2xl font-black leading-tight">{post.title}</h3>
+
+                {post.description && (
+                  <p className="mt-3 leading-7 text-zinc-600">{post.description}</p>
+                )}
+
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-[#f6f8f5] p-4">
+                    <p className="text-xs font-bold text-zinc-500">Time</p>
+                    <p className="mt-1 font-black">
+                      {post.event_time || "Flexible"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-[#f6f8f5] p-4">
+                    <p className="text-xs font-bold text-zinc-500">Need</p>
+                    <p className="mt-1 font-black">
+                      {post.needed_people || 0} people
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex gap-3">
+                  <button className="flex-1 rounded-full bg-green-600 px-5 py-3 text-sm font-black text-white transition hover:bg-green-700">
+                    I’m interested
+                  </button>
+
+                  {post.whatsapp && (
+                    <a
+                      href={`https://wa.me/${post.whatsapp.replace(/\D/g, "")}`}
+                      target="_blank"
+                      className="flex-1 rounded-full border border-zinc-200 bg-white px-5 py-3 text-center text-sm font-black text-zinc-900 transition hover:border-green-300"
+                    >
+                      WhatsApp
+                    </a>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );

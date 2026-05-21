@@ -1,141 +1,145 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
-const gyms = [
-  {
-    id: "1",
-    name: "Power House Gym",
-    city: "Tripoli",
-    area: "Ain Zara",
-    address: "Ain Zara, Tripoli, Libya",
-    image: "/images/gym-power.jpg",
-    rating: "4.8",
-    reviews: "128",
-    price: "199 LYD/month",
-    dayPass: "25 LYD",
-    gender: "Mixed",
-    verified: true,
-    description:
-      "Premium equipment, expert coaches and a motivating community in central Tripoli. Perfect for strength training, cardio, functional workouts and personal coaching.",
-    facilities: ["Weights", "Cardio", "CrossFit", "Parking", "Showers", "Personal Training", "Lockers", "Classes"],
-    openingHours: [
-      ["Monday - Thursday", "6:00 AM - 11:00 PM"],
-      ["Friday", "2:00 PM - 11:00 PM"],
-      ["Saturday - Sunday", "8:00 AM - 10:00 PM"],
-    ],
-  },
-  {
-    id: "2",
-    name: "Benghazi Fitness Club",
-    city: "Benghazi",
-    area: "Al Hawari",
-    address: "Al Hawari, Benghazi, Libya",
-    image: "/images/gym-benghazi.jpg",
-    rating: "4.6",
-    reviews: "97",
-    price: "160 LYD/month",
-    dayPass: "20 LYD",
-    gender: "Male",
-    verified: true,
-    description:
-      "Modern gym with weights, boxing, cardio and functional training zones. A strong option for serious training in Benghazi.",
-    facilities: ["Weights", "Boxing", "Cardio", "Showers", "Parking", "Personal Training"],
-    openingHours: [
-      ["Monday - Thursday", "7:00 AM - 11:00 PM"],
-      ["Friday", "3:00 PM - 11:00 PM"],
-      ["Saturday - Sunday", "9:00 AM - 10:00 PM"],
-    ],
-  },
-  {
-    id: "3",
-    name: "Ladies Active Studio",
-    city: "Tripoli",
-    area: "Ben Ashour",
-    address: "Ben Ashour, Tripoli, Libya",
-    image: "/images/gym-ladies.jpg",
-    rating: "4.9",
-    reviews: "86",
-    price: "180 LYD/month",
-    dayPass: "25 LYD",
-    gender: "Women-only",
-    verified: true,
-    description:
-      "Clean women-only training studio with cardio, classes, personal training and a comfortable privacy-focused environment.",
-    facilities: ["Classes", "Cardio", "Personal Training", "Privacy", "Showers", "Lockers"],
-    openingHours: [
-      ["Monday - Thursday", "8:00 AM - 10:00 PM"],
-      ["Friday", "Closed"],
-      ["Saturday - Sunday", "9:00 AM - 9:00 PM"],
-    ],
-  },
-];
+type Gym = {
+  id: number;
+  name: string;
+  city?: string;
+  area?: string;
+  address?: string;
+  description?: string;
+  facilities?: string;
+  opening_hours?: string;
+  price_range?: string;
+  phone?: string;
+  whatsapp?: string;
+  instagram?: string;
+  image_url?: string;
+  rating?: number;
+  is_verified?: number;
+  status: string;
+  created_at: string;
+};
 
-const reviews = [
-  {
-    name: "Omar M.",
-    rating: "5.0",
-    text: "Clean gym, good machines and really nice staff. Great atmosphere.",
-  },
-  {
-    name: "Sara A.",
-    rating: "4.8",
-    text: "Good equipment and the WhatsApp contact makes it easy to ask about prices.",
-  },
-  {
-    name: "Ali R.",
-    rating: "4.7",
-    text: "Nice place for strength training. Parking helps a lot.",
-  },
-];
+export default function GymDetailsPage() {
+  const params = useParams();
+  const gymId = params.id as string;
 
-export default async function GymProfilePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const gym = gyms.find((item) => item.id === id) || gyms[0];
+  const [gym, setGym] = useState<Gym | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+
+  async function loadGym() {
+    try {
+      setLoading(true);
+
+      const res = await fetch(`http://localhost:5000/api/gyms/${gymId}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data.message || "Could not load gym.");
+        return;
+      }
+
+      setGym(data.gym);
+    } catch (error) {
+      console.error(error);
+      setMessage("Cannot connect to backend.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadGym();
+  }, []);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#f6f8f5] px-5 py-20 text-zinc-950">
+        <section className="mx-auto max-w-4xl rounded-[3rem] bg-white p-8 text-center shadow-sm">
+          <h1 className="text-4xl font-black">Loading gym...</h1>
+        </section>
+      </main>
+    );
+  }
+
+  if (!gym) {
+    return (
+      <main className="min-h-screen bg-[#f6f8f5] px-5 py-20 text-zinc-950">
+        <section className="mx-auto max-w-4xl rounded-[3rem] bg-white p-8 text-center shadow-sm">
+          <h1 className="text-4xl font-black">Gym not found</h1>
+          {message && <p className="mt-3 font-bold text-red-600">{message}</p>}
+          <Link
+            href="/gyms"
+            className="mt-6 inline-flex rounded-full bg-green-600 px-7 py-4 text-sm font-black text-white"
+          >
+            Back to gyms
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
+  const facilities = gym.facilities
+    ? gym.facilities.split(",").map((item) => item.trim())
+    : [];
 
   return (
     <main className="min-h-screen bg-[#f6f8f5] text-zinc-950">
-      <section className="mx-auto max-w-7xl px-5 py-8 lg:px-8">
-        <Link href="/gyms" className="mb-5 inline-flex font-black text-green-700">
-          ← Back to gyms
-        </Link>
-
+      <section className="mx-auto max-w-7xl px-5 py-10 lg:px-8">
         <div className="overflow-hidden rounded-[3rem] bg-white shadow-sm">
-          <div className="relative h-[420px]">
+          <div className="relative h-[420px] bg-zinc-200">
             <Image
-              src={gym.image}
+              src={gym.image_url || "/images/gym-power.jpg"}
               alt={gym.name}
-              width={1400}
-              height={800}
-              className="h-full w-full object-cover"
+              fill
+              className="object-cover"
               priority
             />
 
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-950/20 to-transparent" />
 
-            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+            <div className="absolute left-6 top-6">
+              <Link
+                href="/gyms"
+                className="rounded-full bg-white px-5 py-3 text-sm font-black text-zinc-950"
+              >
+                ← Back to gyms
+              </Link>
+            </div>
+
+            <div className="absolute bottom-8 left-8 right-8 text-white">
               <div className="mb-4 flex flex-wrap gap-3">
-                {gym.verified && (
-                  <span className="rounded-full bg-white px-4 py-2 text-xs font-black text-green-700">
-                    ✓ Verified
+                {gym.is_verified ? (
+                  <span className="rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white">
+                    Verified gym
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-white px-4 py-2 text-sm font-black text-zinc-950">
+                    Listed gym
                   </span>
                 )}
-                <span className="rounded-full bg-green-600 px-4 py-2 text-xs font-black text-white">
-                  {gym.gender}
+
+                <span className="rounded-full bg-white/20 px-4 py-2 text-sm font-black backdrop-blur">
+                  ⭐ {gym.rating || "New"}
                 </span>
-                <span className="rounded-full bg-zinc-950 px-4 py-2 text-xs font-black text-white">
-                  ⭐ {gym.rating} ({gym.reviews} reviews)
+
+                <span className="rounded-full bg-white/20 px-4 py-2 text-sm font-black backdrop-blur">
+                  {gym.city || "Libya"}
                 </span>
               </div>
 
-              <h1 className="text-5xl font-black leading-tight tracking-tight text-white md:text-7xl">
+              <h1 className="max-w-4xl text-5xl font-black leading-tight tracking-tight md:text-7xl">
                 {gym.name}
               </h1>
-              <p className="mt-3 text-lg font-semibold text-zinc-200">
-                {gym.area}, {gym.city}
+
+              <p className="mt-3 text-lg font-bold text-zinc-200">
+                {gym.area || "Area TBC"} • {gym.address || "Address TBC"}
               </p>
             </div>
           </div>
@@ -147,111 +151,117 @@ export default async function GymProfilePage({
       <section className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-5 pb-20 lg:grid-cols-[1fr_360px] lg:px-8">
         <div className="space-y-6">
           <div className="rounded-[2.5rem] bg-white p-6 shadow-sm md:p-8">
-            <p className="font-bold text-green-700">About this gym</p>
-            <h2 className="mt-2 text-3xl font-black">Overview</h2>
-            <p className="mt-4 max-w-3xl text-lg leading-8 text-zinc-600">
-              {gym.description}
-            </p>
+            <p className="font-bold text-green-700">About</p>
+            <h2 className="mt-2 text-3xl font-black">Gym overview</h2>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <div className="rounded-3xl bg-[#f6f8f5] p-5">
-                <p className="text-sm font-bold text-zinc-500">Membership</p>
-                <p className="mt-1 text-2xl font-black">{gym.price}</p>
-              </div>
-              <div className="rounded-3xl bg-[#f6f8f5] p-5">
-                <p className="text-sm font-bold text-zinc-500">Day pass</p>
-                <p className="mt-1 text-2xl font-black">{gym.dayPass}</p>
-              </div>
-              <div className="rounded-3xl bg-[#f6f8f5] p-5">
-                <p className="text-sm font-bold text-zinc-500">Rating</p>
-                <p className="mt-1 text-2xl font-black">⭐ {gym.rating}</p>
-              </div>
-            </div>
+            <p className="mt-5 text-lg leading-8 text-zinc-600">
+              {gym.description || "No description added yet."}
+            </p>
           </div>
 
           <div className="rounded-[2.5rem] bg-white p-6 shadow-sm md:p-8">
             <p className="font-bold text-green-700">Facilities</p>
             <h2 className="mt-2 text-3xl font-black">What they offer</h2>
 
-            <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-              {gym.facilities.map((facility) => (
-                <div
-                  key={facility}
-                  className="rounded-3xl border border-zinc-100 bg-[#f6f8f5] p-5 text-center font-black"
-                >
-                  {facility}
-                </div>
-              ))}
-            </div>
+            {facilities.length === 0 ? (
+              <p className="mt-5 text-zinc-500">No facilities listed yet.</p>
+            ) : (
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {facilities.map((facility) => (
+                  <div
+                    key={facility}
+                    className="rounded-2xl bg-[#f6f8f5] p-4 font-black"
+                  >
+                    ✅ {facility}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="rounded-[2.5rem] bg-white p-6 shadow-sm md:p-8">
             <p className="font-bold text-green-700">Reviews</p>
-            <h2 className="mt-2 text-3xl font-black">What people say</h2>
+            <h2 className="mt-2 text-3xl font-black">Member reviews</h2>
 
-            <div className="mt-6 grid gap-4">
-              {reviews.map((review) => (
-                <div key={review.name} className="rounded-3xl bg-[#f6f8f5] p-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-zinc-950 font-black text-white">
-                        {review.name[0]}
-                      </div>
-                      <div>
-                        <p className="font-black">{review.name}</p>
-                        <p className="text-sm font-bold text-green-700">⭐ {review.rating}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="mt-4 leading-7 text-zinc-600">{review.text}</p>
-                </div>
-              ))}
+            <div className="mt-6 rounded-3xl bg-[#f6f8f5] p-5">
+              <p className="font-black">Reviews coming soon</p>
+              <p className="mt-2 text-sm text-zinc-500">
+                Later we’ll let users rate gyms and leave feedback.
+              </p>
             </div>
           </div>
         </div>
 
         <aside className="space-y-6">
           <div className="rounded-[2.5rem] bg-white p-6 shadow-sm">
-            <h3 className="text-2xl font-black">Contact</h3>
-            <p className="mt-2 text-sm text-zinc-500">{gym.address}</p>
+            <h3 className="text-2xl font-black">Gym details</h3>
 
-            <div className="mt-5 grid gap-3">
-              <button className="rounded-full bg-green-600 px-5 py-3 text-sm font-black text-white transition hover:bg-green-700">
-                Message on WhatsApp
-              </button>
-              <button className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-black text-zinc-950 transition hover:border-green-300">
-                Call gym
-              </button>
-              <button className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-black text-zinc-950 transition hover:border-green-300">
-                Get directions
-              </button>
+            <div className="mt-5 space-y-3">
+              <div className="rounded-2xl bg-[#f6f8f5] p-4">
+                <p className="text-xs font-bold text-zinc-500">Opening hours</p>
+                <p className="mt-1 font-black">
+                  {gym.opening_hours || "Ask gym"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-green-50 p-4">
+                <p className="text-xs font-bold text-green-700">Price range</p>
+                <p className="mt-1 font-black text-green-700">
+                  {gym.price_range || "Ask gym"}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-[#f6f8f5] p-4">
+                <p className="text-xs font-bold text-zinc-500">Location</p>
+                <p className="mt-1 font-black">
+                  {gym.address || gym.area || gym.city || "Location TBC"}
+                </p>
+              </div>
             </div>
           </div>
 
           <div className="rounded-[2.5rem] bg-zinc-950 p-6 text-white shadow-sm">
-            <h3 className="text-2xl font-black">Opening hours</h3>
+            <h3 className="text-2xl font-black">Contact gym</h3>
+            <p className="mt-2 text-sm leading-6 text-zinc-300">
+              Message the gym directly or check their social media.
+            </p>
 
-            <div className="mt-5 space-y-3">
-              {gym.openingHours.map(([day, time]) => (
-                <div key={day} className="flex items-center justify-between gap-4 rounded-2xl bg-white/10 p-4">
-                  <p className="font-bold">{day}</p>
-                  <p className="text-sm font-bold text-green-400">{time}</p>
-                </div>
-              ))}
+            <div className="mt-5 grid gap-3">
+              {gym.whatsapp && (
+                <a
+                  href={`https://wa.me/${gym.whatsapp.replace(/\D/g, "")}`}
+                  target="_blank"
+                  className="rounded-full bg-green-600 px-5 py-3 text-center text-sm font-black text-white"
+                >
+                  WhatsApp
+                </a>
+              )}
+
+              {gym.phone && (
+                <a
+                  href={`tel:${gym.phone}`}
+                  className="rounded-full bg-white px-5 py-3 text-center text-sm font-black text-zinc-950"
+                >
+                  Call gym
+                </a>
+              )}
+
+              {gym.instagram && (
+                <p className="rounded-full bg-white/10 px-5 py-3 text-center text-sm font-black text-white">
+                  Instagram: {gym.instagram}
+                </p>
+              )}
             </div>
           </div>
 
           <div className="rounded-[2.5rem] bg-gradient-to-br from-green-600 via-zinc-950 to-red-600 p-6 text-white shadow-sm">
-            <h3 className="text-2xl font-black">Need a gym partner?</h3>
+            <h3 className="text-2xl font-black">Own this gym?</h3>
             <p className="mt-3 text-sm leading-6 text-zinc-100">
-              Find someone training at this gym or nearby. This is what makes Tamreen social.
+              Later gym owners can claim this listing, update details and get verified.
             </p>
-            <Link
-              href="/community"
-              className="mt-5 inline-flex rounded-full bg-white px-5 py-3 text-sm font-black text-zinc-950"
-            >
-              Find Your Crew
-            </Link>
+            <button className="mt-5 rounded-full bg-white px-5 py-3 text-sm font-black text-zinc-950">
+              Claim listing
+            </button>
           </div>
         </aside>
       </section>

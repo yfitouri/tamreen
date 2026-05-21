@@ -1,14 +1,87 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const roles = [
-  "Normal user",
-  "Gym owner",
-  "Trainer",
-  "Food business",
-  "Health professional",
+  { label: "Normal user", value: "user" },
+  { label: "Gym owner", value: "gym_owner" },
+  { label: "Trainer", value: "trainer" },
+  { label: "Food business", value: "food_business" },
+  { label: "Health professional", value: "health_professional" },
 ];
 
 export default function RegisterPage() {
+  const router = useRouter();
+
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [city, setCity] = useState("Tripoli");
+  const [role, setRole] = useState("user");
+  const [password, setPassword] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  async function handleRegister() {
+    setMessage("");
+
+    if (!fullName || !email || !password) {
+      setMessage("Please enter your name, email and password.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          full_name: fullName,
+          email,
+          phone,
+          city,
+          password,
+          role,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMessage(data.message || "Register failed.");
+        return;
+      }
+
+      localStorage.setItem("tamreen-token", data.token);
+      localStorage.setItem("tamreen-user", JSON.stringify(data.user));
+
+      if (data.user.role === "admin") {
+        router.push("/admin");
+      } else if (
+        data.user.role === "gym_owner" ||
+        data.user.role === "food_business" ||
+        data.user.role === "health_professional"
+      ) {
+        router.push("/business-dashboard");
+      } else if (data.user.role === "trainer") {
+        router.push("/trainer-dashboard");
+      } else {
+        router.push("/profile");
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage("Cannot connect to backend. Make sure backend is running.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#f6f8f5] text-zinc-950">
       <section className="mx-auto grid min-h-screen max-w-7xl grid-cols-1 gap-8 px-5 py-8 lg:grid-cols-[1fr_520px] lg:px-8">
@@ -56,12 +129,14 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            <form className="space-y-5">
+            <div className="space-y-5">
               <div>
                 <label className="text-sm font-black text-zinc-700">Full name</label>
                 <input
                   type="text"
                   placeholder="Your name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 font-bold outline-none transition focus:border-green-500"
                 />
               </div>
@@ -71,6 +146,8 @@ export default function RegisterPage() {
                 <input
                   type="email"
                   placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 font-bold outline-none transition focus:border-green-500"
                 />
               </div>
@@ -80,13 +157,19 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   placeholder="+218 91 000 0000"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 font-bold outline-none transition focus:border-green-500"
                 />
               </div>
 
               <div>
                 <label className="text-sm font-black text-zinc-700">City</label>
-                <select className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 font-bold outline-none transition focus:border-green-500">
+                <select
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 font-bold outline-none transition focus:border-green-500"
+                >
                   <option>Tripoli</option>
                   <option>Benghazi</option>
                   <option>Misrata</option>
@@ -99,18 +182,23 @@ export default function RegisterPage() {
               <div>
                 <label className="text-sm font-black text-zinc-700">Account type</label>
                 <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {roles.map((role, index) => (
+                  {roles.map((item) => (
                     <label
-                      key={role}
-                      className="flex cursor-pointer items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-4 font-bold transition hover:border-green-300"
+                      key={item.value}
+                      className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 font-bold transition ${
+                        role === item.value
+                          ? "border-green-500 bg-green-50 text-green-700"
+                          : "border-zinc-200 bg-white hover:border-green-300"
+                      }`}
                     >
                       <input
                         type="radio"
                         name="role"
-                        defaultChecked={index === 0}
+                        checked={role === item.value}
+                        onChange={() => setRole(item.value)}
                         className="h-4 w-4"
                       />
-                      {role}
+                      {item.label}
                     </label>
                   ))}
                 </div>
@@ -121,17 +209,27 @@ export default function RegisterPage() {
                 <input
                   type="password"
                   placeholder="Create password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="mt-3 w-full rounded-2xl border border-zinc-200 bg-white px-5 py-4 font-bold outline-none transition focus:border-green-500"
                 />
               </div>
 
+              {message && (
+                <div className="rounded-2xl bg-red-50 p-4 text-sm font-black text-red-700">
+                  {message}
+                </div>
+              )}
+
               <button
                 type="button"
-                className="w-full rounded-full bg-green-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-green-600/20 transition hover:-translate-y-1 hover:bg-green-700"
+                onClick={handleRegister}
+                disabled={loading}
+                className="w-full rounded-full bg-green-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-green-600/20 transition hover:-translate-y-1 hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Create account
+                {loading ? "Creating account..." : "Create account"}
               </button>
-            </form>
+            </div>
 
             <p className="mt-8 text-center text-sm font-bold text-zinc-500">
               Already have an account?{" "}

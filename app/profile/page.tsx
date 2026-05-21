@@ -1,4 +1,17 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+type TamreenUser = {
+  id: number;
+  full_name: string;
+  email: string;
+  phone?: string;
+  city?: string;
+  role: string;
+  is_verified?: boolean;
+};
 
 const stats = [
   { label: "Check-ins", value: "18" },
@@ -60,7 +73,47 @@ const activity = [
   },
 ];
 
+function cleanRole(role: string) {
+  return role.replaceAll("_", " ");
+}
+
 export default function ProfilePage() {
+  const [user, setUser] = useState<TamreenUser | null>(null);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("tamreen-user");
+
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  function handleLogout() {
+    localStorage.removeItem("tamreen-token");
+    localStorage.removeItem("tamreen-user");
+    window.location.href = "/login";
+  }
+
+  if (!user) {
+    return (
+      <main className="min-h-screen bg-[#f6f8f5] px-5 py-20 text-zinc-950">
+        <section className="mx-auto max-w-3xl rounded-[3rem] bg-white p-8 text-center shadow-sm">
+          <h1 className="text-4xl font-black">You are not logged in</h1>
+          <p className="mt-3 text-zinc-500">
+            Login first to view your Tamreen profile.
+          </p>
+
+          <Link
+            href="/login"
+            className="mt-6 inline-flex rounded-full bg-green-600 px-7 py-4 text-sm font-black text-white"
+          >
+            Login
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#f6f8f5] text-zinc-950">
       <section className="mx-auto max-w-7xl px-5 py-10 lg:px-8">
@@ -73,26 +126,39 @@ export default function ProfilePage() {
               <div>
                 <div className="flex flex-wrap items-center gap-5">
                   <div className="flex h-28 w-28 items-center justify-center rounded-[2rem] bg-zinc-950 text-5xl font-black text-white">
-                    Y
+                    {user.full_name?.[0]?.toUpperCase() || "U"}
                   </div>
 
                   <div>
                     <div className="mb-3 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-green-100 px-4 py-2 text-xs font-black text-green-700">
-                        Normal user
+                      <span className="rounded-full bg-green-100 px-4 py-2 text-xs font-black capitalize text-green-700">
+                        {cleanRole(user.role)}
                       </span>
-                      <span className="rounded-full bg-red-100 px-4 py-2 text-xs font-black text-red-700">
-                        7 day streak
-                      </span>
+
+                      {user.is_verified ? (
+                        <span className="rounded-full bg-blue-100 px-4 py-2 text-xs font-black text-blue-700">
+                          Verified
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-red-100 px-4 py-2 text-xs font-black text-red-700">
+                          Not verified
+                        </span>
+                      )}
                     </div>
 
                     <h1 className="text-5xl font-black leading-tight tracking-tight md:text-6xl">
-                      Yousef Fitouri
+                      {user.full_name}
                     </h1>
 
                     <p className="mt-2 text-lg font-semibold text-zinc-500">
-                      Tripoli • Fitness, football, gym and healthy food
+                      {user.city || "No city selected"} • {user.email}
                     </p>
+
+                    {user.phone && (
+                      <p className="mt-1 text-sm font-bold text-zinc-400">
+                        WhatsApp / Phone: {user.phone}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -105,12 +171,20 @@ export default function ProfilePage() {
                   <button className="rounded-full bg-green-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-600/20 transition hover:-translate-y-1 hover:bg-green-700">
                     Edit profile
                   </button>
+
                   <Link
                     href="/community"
                     className="rounded-full border border-zinc-200 bg-white px-6 py-3 text-sm font-black text-zinc-900 transition hover:-translate-y-1"
                   >
                     Find Your Crew
                   </Link>
+
+                  <button
+                    onClick={handleLogout}
+                    className="rounded-full border border-red-200 bg-white px-6 py-3 text-sm font-black text-red-600 transition hover:-translate-y-1 hover:border-red-400"
+                  >
+                    Logout
+                  </button>
                 </div>
               </div>
 
