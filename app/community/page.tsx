@@ -72,7 +72,7 @@ export default function CommunityPage() {
       setLoading(true);
       const token = localStorage.getItem("tamreen-token");
 
-      const res = await fetch("http://localhost:5000/api/community", {
+      const res = await fetch("http://45.141.36.132:5000/api/community", {
         headers: token
           ? {
             Authorization: `Bearer ${token}`,
@@ -109,7 +109,7 @@ export default function CommunityPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/community", {
+      const res = await fetch("http://45.141.36.132:5000/api/community", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -156,7 +156,7 @@ export default function CommunityPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/community/${postId}/interest`, {
+      const res = await fetch(`http://45.141.36.132:5000/api/community/${postId}/interest`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -178,7 +178,7 @@ export default function CommunityPage() {
   }
   async function loadComments(postId: number) {
     try {
-      const res = await fetch(`http://localhost:5000/api/community/${postId}/comments`);
+      const res = await fetch(`http://45.141.36.132:5000/api/community/${postId}/comments`);
       const data = await res.json();
 
       setComments((prev) => ({
@@ -219,7 +219,7 @@ export default function CommunityPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/community/${postId}/comments`, {
+      const res = await fetch(`http://45.141.36.132:5000/api/community/${postId}/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -257,7 +257,7 @@ export default function CommunityPage() {
     setOpenInterestsPostId(postId);
 
     try {
-      const res = await fetch(`http://localhost:5000/api/community/${postId}/interests`);
+      const res = await fetch(`http://45.141.36.132:5000/api/community/${postId}/interests`);
       const data = await res.json();
 
       setInterestedPeople((prev) => ({
@@ -280,7 +280,7 @@ export default function CommunityPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/messages/start", {
+      const res = await fetch("http://45.141.36.132:5000/api/messages/start", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

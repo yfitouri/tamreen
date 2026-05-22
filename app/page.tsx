@@ -47,7 +47,7 @@ export default function CommunityPage() {
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:5000/api/community");
+      const res = await fetch("http://45.141.36.132:5000/api/community");
       const data = await res.json();
 
       setPosts(data.posts || []);
@@ -79,7 +79,7 @@ export default function CommunityPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/community", {
+      const res = await fetch("http://45.141.36.132:5000/api/community", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

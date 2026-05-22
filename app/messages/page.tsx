@@ -29,7 +29,7 @@ export default function MessagesPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/messages", {
+      const res = await fetch("http://45.141.36.132:5000/api/messages", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

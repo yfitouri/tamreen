@@ -37,7 +37,7 @@ export default function GymDetailsPage() {
     try {
       setLoading(true);
 
-      const res = await fetch(`http://localhost:5000/api/gyms/${gymId}`);
+      const res = await fetch(`http://45.141.36.132:5000/api/gyms/${gymId}`);
       const data = await res.json();
 
       if (!res.ok) {

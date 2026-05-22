@@ -46,7 +46,7 @@ export default function ChatPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/messages/${conversationId}`, {
+      const res = await fetch(`http://45.141.36.132:5000/api/messages/${conversationId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -83,7 +83,7 @@ export default function ChatPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/messages/${conversationId}`, {
+      const res = await fetch(`http://45.141.36.132:5000/api/messages/${conversationId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

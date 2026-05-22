@@ -37,7 +37,7 @@ export default function GymsPage() {
 
       const token = localStorage.getItem("tamreen-token");
 
-      const res = await fetch("http://localhost:5000/api/gyms", {
+      const res = await fetch("http://45.141.36.132:5000/api/gyms", {
         headers: token
           ? {
             Authorization: `Bearer ${token}`,
@@ -75,7 +75,7 @@ export default function GymsPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/gyms/${gymId}/save`, {
+      const res = await fetch(`http://45.141.36.132:5000/api/gyms/${gymId}/save`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

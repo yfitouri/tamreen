@@ -36,7 +36,7 @@ export default function EventDetailsPage() {
 
       const token = localStorage.getItem("tamreen-token");
 
-      const res = await fetch(`http://localhost:5000/api/events`, {
+      const res = await fetch(`http://45.141.36.132:5000/api/events`, {
         headers: token
           ? {
               Authorization: `Bearer ${token}`,
@@ -80,7 +80,7 @@ export default function EventDetailsPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/events/${eventId}/join`, {
+      const res = await fetch(`http://45.141.36.132:5000/api/events/${eventId}/join`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

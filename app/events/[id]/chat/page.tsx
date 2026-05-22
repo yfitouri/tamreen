@@ -45,7 +45,7 @@ export default function EventChatPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/events/${eventId}/chat`, {
+      const res = await fetch(`http://45.141.36.132:5000/api/events/${eventId}/chat`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -82,7 +82,7 @@ export default function EventChatPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/events/${eventId}/chat`, {
+      const res = await fetch(`http://45.141.36.132:5000/api/events/${eventId}/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
